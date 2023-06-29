@@ -150,6 +150,17 @@ class RobotLoader(object):
         lb[:7] = -1
         self.robot.model.lowerPositionLimit = lb
 
+class GO1LegLoader(RobotLoader):
+    path = "go1_leg_description"
+    urdf_filename = "leg.urdf"
+    urdf_subpath = "urdf"
+    ref_posture = None
+
+class B1LegLoader(RobotLoader):
+    path = "b1_leg_description"
+    urdf_filename = "leg.urdf"
+    urdf_subpath = "urdf"
+    ref_posture = None
 
 class B1Loader(RobotLoader):
     path = "b1_description"
@@ -511,6 +522,8 @@ class IrisLoader(RobotLoader):
 
 
 ROBOTS = {
+    "b1_leg": B1LegLoader,
+    "go1_leg": GO1LegLoader,
     "b1": B1Loader,
     "go1": Go1Loader,
     "a1": A1Loader,
