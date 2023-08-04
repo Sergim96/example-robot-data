@@ -154,6 +154,7 @@ class JeyLoader(RobotLoader):
     path = "jey_description"
     urdf_filename = "jey.urdf"
     urdf_subpath = "urdf"
+    srdf_filename = "jey.srdf"
     ref_posture = None
     free_flyer = True
 

@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<robot name="jey">
+    <group name="whole_body">
+        <joint name="root_joint"/>
+        <joint name="X_RW_joint"/>
+        <joint name="Y_RW_joint"/>
+        <joint name="Z_RW_joint"/>
+        <joint name="thigh_joint"/>
+        <joint name="calf_joint"/>
+    </group>
+    <group_state name="standing" group="whole_body">
+        <joint name="root_joint" value="0. 0. 0.28 0. 0. 0. 1."/>
+        <joint name="X_RW_joint" value="0.0"/>
+        <joint name="Y_RW_joint" value="0.0"/>
+        <joint name="Z_RW_joint" value="0.0"/>
+        <joint name="thigh_joint" value="-0.7"/>
+        <joint name="calf_joint" value="-1.4"/>
+    </group_state>
+    <virtual_joint name="root_joint" type="floating" parent_frame="world_frame" child_link="trunk"/>
+</robot>
