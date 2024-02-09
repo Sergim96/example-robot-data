@@ -34,7 +34,7 @@
   </material>
   <!-- Material for the visual primitives -->
   <material name="anymal_material">
-    <color rgba="0.7 0.7 0.7 1."/>
+    <color rgba="0.4 0.4 0.4 1.0"/>
   </material>
   <!-- Xacro:Properties -->
   <!-- [m] -->
