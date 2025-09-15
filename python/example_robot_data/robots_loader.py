@@ -174,6 +174,29 @@ class RobotLoader:
             i += 1
         return f"{base_name}_capsule_{i}"
 
+class kangarooLegsLoader(RobotLoader):
+    path = "kangaroo_leg_description"
+    urdf_filename = "kangaroo_legs.urdf"
+    urdf_subpath = "urdf"
+    srdf_filename = "kangaroo_legs.srdf"
+    ref_posture = "standing"
+    free_flyer = True
+
+class kangarooLegsKinLoader(RobotLoader):
+    path = "kangaroo_leg_kin_description"
+    urdf_filename = "kangaroo_kin_legs.urdf"
+    urdf_subpath = "urdf"
+    srdf_filename = "kangaroo_kin_legs.srdf"
+    ref_posture = "standing"
+    free_flyer = True
+
+class kangarooLoader(RobotLoader):
+    path = "kangaroo_description"
+    urdf_filename = "kangaroo.urdf"
+    urdf_subpath = "urdf"
+    srdf_filename = "kangaroo.srdf"
+    ref_posture = "standing"
+    free_flyer = True
 
 class B1Loader(RobotLoader):
     path = "b1_description"
@@ -183,6 +206,29 @@ class B1Loader(RobotLoader):
     ref_posture = "standing"
     free_flyer = True
 
+class B1LegFLLoader(RobotLoader):
+    path = "b1_leg_FL"
+    urdf_filename = "b1.urdf"
+    urdf_subpath = "urdf"
+    srdf_filename = "b1.srdf"
+    ref_posture = "standing"
+    free_flyer = False
+
+class B1LegFRLoader(RobotLoader):
+    path = "b1_leg_FR"
+    urdf_filename = "b1.urdf"
+    urdf_subpath = "urdf"
+    srdf_filename = "b1.srdf"
+    ref_posture = "standing"
+    free_flyer = False
+
+class B1LegRRLoader(RobotLoader):
+    path = "b1_leg_RR"
+    urdf_filename = "b1.urdf"
+    urdf_subpath = "urdf"
+    srdf_filename = "b1.srdf"
+    ref_posture = "standing"
+    free_flyer = False
 
 class Go1Loader(RobotLoader):
     path = "go1_description"
@@ -727,7 +773,13 @@ class PR2Loader(RobotLoader):
 
 
 ROBOTS = {
+    "kangaroo_legs_kin": kangarooLegsKinLoader,
+    "kangaroo_legs": kangarooLegsLoader,
+    "kangaroo": kangarooLoader,
     "b1": B1Loader,
+    "b1_leg_FL": B1LegFLLoader,
+    "b1_leg_FR": B1LegFRLoader,
+    "b1_leg_RR": B1LegRRLoader,
     "bravo7_gripper": Bravo7GripperLoader,
     "bravo7_no_ee": Bravo7NoEndEffectorLoader,
     "falcon_bravo7_no_ee": FalconBravo7NoEndEffectorLoader,

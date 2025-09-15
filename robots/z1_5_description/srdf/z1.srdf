@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<robot name="z1">
+
+    <group name="end_effector">
+        <joint name="joint6" />
+        <chain base_link="base" tip_link="gripperMover" />
+    </group>
+
+    <end_effector name="end_effector" parent_link="gripperMover" group="end_effector" />
+
+    <group_state name="home">
+        <joint name="joint6" value="0." />
+    </group_state>
+
+    <group_state name="arm_up">
+        <joint name="joint6" value="0." />
+    </group_state>
+
+</robot>
