@@ -1,6 +1,8 @@
 import sys
 import typing
+import xml.etree.ElementTree as ET
 from os.path import dirname, exists, join
+from types import MethodType
 
 import hppfcl
 import numpy as np
@@ -59,6 +61,15 @@ def readParamsFromSrdf(
         q0 = model.referenceConfigurations[referencePose].copy()
     q0 = pin.normalize(model, q0)
     return q0
+
+
+def _robot_get_constraints(self, fallback_infer=True):
+    srdf_path = getattr(self, "srdf_path", None)
+    if srdf_path is None:
+        return []
+    return constraints_from_srdf(
+        self.model, srdf_path, fallback_infer=fallback_infer
+    )
 
 
 class RobotLoader:
@@ -145,6 +156,12 @@ class RobotLoader:
         else:
             self.srdf_path = None
             self.robot.q0 = pin.neutral(self.robot.model)
+
+        self.robot.srdf_path = self.srdf_path
+        self.robot.get_constraints = MethodType(
+            _robot_get_constraints, self.robot
+        )
+
         root = getModelPath(self.path)
         self.robot.urdf = join(root, self.path, self.urdf_subpath, self.urdf_filename)
 
@@ -173,20 +190,11 @@ class RobotLoader:
         while f"{base_name}_capsule_{i}" in existing_names:
             i += 1
         return f"{base_name}_capsule_{i}"
-
-class kangarooLegsLoader(RobotLoader):
-    path = "kangaroo_leg_description"
-    urdf_filename = "kangaroo_legs.urdf"
-    urdf_subpath = "urdf"
-    srdf_filename = "kangaroo_legs.srdf"
-    ref_posture = "standing"
-    free_flyer = True
-
 class kangarooLegsKinLoader(RobotLoader):
-    path = "kangaroo_leg_kin_description"
-    urdf_filename = "kangaroo_kin_legs.urdf"
+    path = "kangaroo_description"
+    urdf_filename = "kangaroo_loop.urdf"
     urdf_subpath = "urdf"
-    srdf_filename = "kangaroo_kin_legs.srdf"
+    srdf_filename = "kangaroo_loop.srdf"
     ref_posture = "standing"
     free_flyer = True
 
@@ -206,27 +214,26 @@ class B1Loader(RobotLoader):
     ref_posture = "standing"
     free_flyer = True
 
-class B1LegFLLoader(RobotLoader):
+class B1LegLoader(RobotLoader):
     path = "b1_leg_FL"
     urdf_filename = "b1.urdf"
     urdf_subpath = "urdf"
     srdf_filename = "b1.srdf"
     ref_posture = "standing"
     free_flyer = False
-
-class B1LegFRLoader(RobotLoader):
-    path = "b1_leg_FR"
-    urdf_filename = "b1.urdf"
+class B1Leg3DLoader(RobotLoader):
+    path = "b1_leg_FL"
+    urdf_filename = "b1_3d.urdf"
     urdf_subpath = "urdf"
-    srdf_filename = "b1.srdf"
+    srdf_filename = "b1_3d.srdf"
     ref_posture = "standing"
     free_flyer = False
 
-class B1LegRRLoader(RobotLoader):
-    path = "b1_leg_RR"
-    urdf_filename = "b1.urdf"
+class B1Leg6DLoader(RobotLoader):
+    path = "b1_leg_FL"
+    urdf_filename = "b1_6d.urdf"
     urdf_subpath = "urdf"
-    srdf_filename = "b1.srdf"
+    srdf_filename = "b1_6d.srdf"
     ref_posture = "standing"
     free_flyer = False
 
@@ -621,6 +628,7 @@ class PandaLoaderCollision(PandaLoader):
         self.robot.collision_data = self.robot.collision_model.createData()
 
         self.srdf_path = None
+        self.robot.srdf_path = self.srdf_path
         self.robot.q0 = pin.neutral(self.robot.model)
         root = getModelPath(self.path)
         self.robot.urdf = join(root, self.path, self.urdf_subpath, self.urdf_filename)
@@ -773,13 +781,12 @@ class PR2Loader(RobotLoader):
 
 
 ROBOTS = {
-    "kangaroo_legs_kin": kangarooLegsKinLoader,
-    "kangaroo_legs": kangarooLegsLoader,
     "kangaroo": kangarooLoader,
+    "kangaroo_legs_kin": kangarooLegsKinLoader,
     "b1": B1Loader,
-    "b1_leg_FL": B1LegFLLoader,
-    "b1_leg_FR": B1LegFRLoader,
-    "b1_leg_RR": B1LegRRLoader,
+    "b1_leg": B1LegLoader,
+    "b1_leg_3D": B1Leg3DLoader,
+    "b1_leg_6D": B1Leg6DLoader,
     "bravo7_gripper": Bravo7GripperLoader,
     "bravo7_no_ee": Bravo7NoEndEffectorLoader,
     "falcon_bravo7_no_ee": FalconBravo7NoEndEffectorLoader,
@@ -845,7 +852,6 @@ ROBOTS = {
     "ur10_limited": UR10LimitedLoader,
 }
 
-
 def loader(name, display=False, rootNodeName="", verbose=False):
     """Load a robot by its name, and optionally display it in a viewer."""
     if name not in ROBOTS:
@@ -872,3 +878,215 @@ def load_full(name, display=False, rootNodeName="", verbose=False):
     and provide its q0 and paths."""
     inst = loader(name, display, rootNodeName, verbose)
     return inst.robot, inst.robot.q0, inst.df_path, inst.srdf_path
+
+
+def get_description_paths(name, verbose=False):
+    """Return absolute URDF and SRDF paths for a robot name.
+
+    Args:
+        name (str): Robot name from ROBOTS.
+        verbose (bool, optional): Print model-path lookup details.
+
+    Returns:
+        tuple[str, str | None]: Absolute URDF path and SRDF path (or None).
+    """
+    if name not in ROBOTS:
+        robots = ", ".join(sorted(ROBOTS.keys()))
+        raise ValueError(f"Robot '{name}' not found. Possible values are {robots}")
+
+    robot_cls = ROBOTS[name]
+    model_root = getModelPath(robot_cls.path, verbose=verbose)
+    urdf_path = join(
+        model_root, robot_cls.path, robot_cls.urdf_subpath, robot_cls.urdf_filename
+    )
+    srdf_path = None
+    if robot_cls.srdf_filename:
+        srdf_path = join(
+            model_root, robot_cls.path, robot_cls.srdf_subpath, robot_cls.srdf_filename
+        )
+    return urdf_path, srdf_path
+
+
+class LoopConstraintDescription:
+    def __init__(
+        self,
+        name,
+        joint1_id,
+        joint1_placement,
+        joint2_id,
+        joint2_placement,
+        mask,
+        frame1=None,
+        frame2=None,
+    ):
+        mask = np.asarray(mask, dtype=bool)
+        if mask.shape != (6,):
+            raise ValueError(
+                f"Constraint mask must be a boolean vector of shape (6,), got {mask}."
+            )
+
+        self.name = name
+        self.joint1_id = joint1_id
+        self.joint1_placement = joint1_placement
+        self.joint2_id = joint2_id
+        self.joint2_placement = joint2_placement
+        self.mask = mask
+        self.frame1 = frame1
+        self.frame2 = frame2
+        self.nc = int(np.count_nonzero(mask))
+
+    def size(self):
+        return self.nc
+
+
+def _legacy_mask(mask_key):
+    legacy_masks = {
+        "3d": np.array([True, False, True, False, False, False], dtype=bool),
+        "6d": np.array([True, False, True, False, True, False], dtype=bool),
+    }
+    try:
+        return legacy_masks[mask_key].copy()
+    except KeyError as exc:
+        raise ValueError(f"Unsupported legacy constraint type '{mask_key}'.") from exc
+
+
+def _parse_constraint_mask(mask_txt):
+    axis_map = {
+        "x": 0,
+        "tx": 0,
+        "y": 1,
+        "ty": 1,
+        "z": 2,
+        "tz": 2,
+        "roll": 3,
+        "rx": 3,
+        "r": 3,
+        "pitch": 4,
+        "ry": 4,
+        "p": 4,
+        "yaw": 5,
+        "rz": 5,
+    }
+
+    tokens = [
+        token.strip().lower()
+        for token in mask_txt.replace(",", " ").split()
+        if token.strip()
+    ]
+    if not tokens:
+        raise ValueError("Constraint mask cannot be empty.")
+
+    if len(tokens) == 6 and all(
+        token in {"0", "1", "false", "true"} for token in tokens
+    ):
+        return np.array(
+            [token in {"1", "true"} for token in tokens], dtype=bool
+        )
+
+    mask = np.zeros(6, dtype=bool)
+    for token in tokens:
+        if token not in axis_map:
+            raise ValueError(
+                f"Unsupported mask token '{token}'. "
+                "Use x y z roll pitch yaw, tx ty tz rx ry rz, or a 6-entry boolean mask."
+            )
+        mask[axis_map[token]] = True
+    return mask
+
+
+def _mask_from_loop_tag(tag, frame1, frame2):
+    mask_txt = tag.attrib.get("mask")
+    if mask_txt is not None:
+        return _parse_constraint_mask(mask_txt)
+
+    legacy_type = tag.attrib.get("type")
+    if legacy_type is not None:
+        return _legacy_mask(legacy_type.lower())
+
+    return _legacy_mask("3d" if "3d" in (frame1 + frame2).lower() else "6d")
+
+
+def constraints_from_srdf(model, srdf_path, fallback_infer=True):
+    """Build loop-constraint descriptions from SRDF loop tags.
+
+    Custom SRDF tags supported:
+        <loop_constraint frame1="..." frame2="..." mask="x z pitch"/>
+        <loop_constraint frame1="..." frame2="..." mask="1 0 1 0 1 0"/>
+
+    Notes:
+        - Axes are interpreted in LOCAL coordinates.
+        - Use "yaw" (or "rz") for rotational yaw. Plain "y" means translation y.
+        - Legacy tags with type="3d|6d" are still supported as a fallback.
+
+    If no explicit loop tags are found and fallback_infer is True, constraints are
+    inferred from frame names that contain "closedloop" and end with A/B.
+
+    Args:
+        model (pin.Model): Pinocchio model containing closure frames.
+        srdf_path (str): Absolute SRDF file path.
+        fallback_infer (bool, optional): Infer constraints from A/B naming.
+
+    Returns:
+        list[LoopConstraintDescription]: Constructed constraints.
+    """
+    root = ET.parse(srdf_path).getroot()
+    constraints = []
+
+    for tag in root.findall(".//loop_constraint"):
+        frame1 = tag.attrib["frame1"]
+        frame2 = tag.attrib["frame2"]
+
+        id1 = model.getFrameId(frame1)
+        id2 = model.getFrameId(frame2)
+
+        constraints.append(
+            LoopConstraintDescription(
+                name=f"{frame1}C{frame2}",
+                joint1_id=model.frames[id1].parentJoint,
+                joint1_placement=model.frames[id1].placement,
+                joint2_id=model.frames[id2].parentJoint,
+                joint2_placement=model.frames[id2].placement,
+                mask=_mask_from_loop_tag(tag, frame1, frame2),
+                frame1=frame1,
+                frame2=frame2,
+            )
+        )
+
+    if constraints or not fallback_infer:
+        return constraints
+
+    names = [fr.name for fr in model.frames]
+    groups = {}
+    for name in names:
+        lname = name.lower()
+        if "closedloop" not in lname:
+            continue
+        if name.endswith("A"):
+            groups.setdefault(name[:-1], {})["A"] = name
+        elif name.endswith("B"):
+            groups.setdefault(name[:-1], {})["B"] = name
+
+    for _, sides in groups.items():
+        if "A" not in sides or "B" not in sides:
+            continue
+
+        frame1, frame2 = sides["B"], sides["A"]
+        id1 = model.getFrameId(frame1)
+        id2 = model.getFrameId(frame2)
+
+        constraints.append(
+            LoopConstraintDescription(
+                name=f"{frame1}C{frame2}",
+                joint1_id=model.frames[id1].parentJoint,
+                joint1_placement=model.frames[id1].placement,
+                joint2_id=model.frames[id2].parentJoint,
+                joint2_placement=model.frames[id2].placement,
+                mask=_legacy_mask(
+                    "3d" if "3d" in (frame1 + frame2).lower() else "6d"
+                ),
+                frame1=frame1,
+                frame2=frame2,
+            )
+        )
+
+    return constraints

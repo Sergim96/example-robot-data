@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This does not replace URDF, and is not an extension of URDF.
+    This is a format for representing semantic information about the robot structure.
+    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
+-->
+<robot name="kangaroo_loop">
+  <group_state name="standing" group="whole_body">
+  <joint name="root_joint" value="0 0 0 0 0 0 1"/>
+  <joint name="leg_left_1_joint" value="3.09510354e-07"/>
+  <joint name="leg_left_2_joint" value="0.0500045165"/>
+  <joint name="leg_left_3_joint" value="9.49173896e-07"/>
+  <joint name="left_hip_motor_l_joint" value="-0.131623564"/>
+  <joint name="left_hip_motor_l_prismatic_joint" value="-0.0036889282"/>
+  <joint name="left_hip_motor_r_joint" value="-0.130561493"/>
+  <joint name="left_hip_motor_r_prismatic_joint" value="-0.00393014138"/>
+  <joint name="left_hip_pivot_l_joint" value="-0.0575094428"/>
+  <joint name="left_hip_act_l_joint" value="-0.0612614448"/>
+  <joint name="left_hip_pivot_r_joint" value="-0.0608811085"/>
+  <joint name="left_hip_act_r_joint" value="-0.0599166501"/>
+  <joint name="leg_left_femur_joint" value="0.91086506"/>
+  <joint name="left_femur_prismatic_joint" value="-0.0290844604"/>
+  <joint name="left_knee_triangle_l_joint" value="0.0135078304"/>
+  <joint name="left_knee_bar_l_joint" value="-0.159788029"/>
+  <joint name="left_knee_triangle_r_joint" value="0.0149273118"/>
+  <joint name="left_knee_bar_r_joint" value="-0.160994819"/>
+  <joint name="leg_left_knee_joint" value="2.02963597"/>
+  <joint name="left_knee_bar_joint" value="-0.277043257"/>
+  <joint name="leg_left_4_joint" value="-0.0399954587"/>
+  <joint name="leg_left_5_joint" value="0.000852646302"/>
+  <joint name="left_ankle_bar_l_joint" value="0.163010353"/>
+  <joint name="left_ankle_bar_r_joint" value="0.163000597"/>
+  <joint name="leg_right_1_joint" value="1.09077058e-06"/>
+  <joint name="leg_right_2_joint" value="0.0499995299"/>
+  <joint name="leg_right_3_joint" value="-1.06354298e-06"/>
+  <joint name="leg_right_femur_joint" value="1.02284203"/>
+  <joint name="leg_right_knee_joint" value="2.02963602"/>
+  <joint name="leg_right_4_joint" value="-0.0399960229"/>
+  <joint name="leg_right_5_joint" value="0.0040812478"/>
+  <joint name="right_ankle_bar_l_joint" value="0.163030304"/>
+  <joint name="right_ankle_bar_r_joint" value="0.162983601"/>
+  <joint name="right_knee_bar_joint" value="-0.277043226"/>
+  <joint name="right_femur_prismatic_joint" value="-0.0290844626"/>
+  <joint name="right_knee_triangle_l_joint" value="0.0108187112"/>
+  <joint name="right_knee_bar_l_joint" value="-0.15721721"/>
+  <joint name="right_knee_triangle_r_joint" value="0.0176131491"/>
+  <joint name="right_knee_bar_r_joint" value="-0.163490457"/>
+  <joint name="right_hip_motor_l_joint" value="-0.129094153"/>
+  <joint name="right_hip_motor_r_joint" value="-0.131332814"/>
+  <joint name="right_hip_pivot_l_joint" value="0.0538402726"/>
+  <joint name="right_hip_act_l_joint" value="-0.0788246607"/>
+  <joint name="right_hip_pivot_r_joint" value="0.0500313726"/>
+  <joint name="right_hip_act_r_joint" value="-0.079881044"/>
+  </group_state>
+  <loop_constraint frame1="left_knee_bar_3D_B" frame2="left_knee_bar_3D_A" mask="x z pitch"/>
+  <loop_constraint frame1="left_ankle_bar_l_3D_B" frame2="left_ankle_bar_l_3D_A" mask="z"/>
+  <loop_constraint frame1="left_ankle_bar_r_3D_B" frame2="left_ankle_bar_r_3D_A" mask="x z roll"/>
+  <loop_constraint frame1="left_knee_bar_l_3D_B" frame2="left_knee_bar_l_3D_A" mask="x z pitch"/>
+  <loop_constraint frame1="left_knee_bar_r_3D_B" frame2="left_knee_bar_r_3D_A" mask="x z pitch"/>
+  <loop_constraint frame1="right_knee_bar_3D_B" frame2="right_knee_bar_3D_A" mask="x z pitch"/>
+  <loop_constraint frame1="right_ankle_bar_l_3D_B" frame2="right_ankle_bar_l_3D_A" mask="z"/>
+  <loop_constraint frame1="right_ankle_bar_r_3D_B" frame2="right_ankle_bar_r_3D_A" mask="x z roll"/>
+  <loop_constraint frame1="right_knee_bar_l_3D_B" frame2="right_knee_bar_l_3D_A" mask="x z pitch"/>
+  <loop_constraint frame1="right_knee_bar_r_3D_B" frame2="right_knee_bar_r_3D_A" mask="x z pitch"/>
+  <loop_constraint frame1="left_hip_act_r_3D_A" frame2="left_hip_act_r_3D_B" mask="x z pitch"/>
+  <loop_constraint frame1="left_hip_act_l_3D_A" frame2="left_hip_act_l_3D_B" mask="x z pitch"/>
+  <loop_constraint frame1="right_hip_act_r_3D_A" frame2="right_hip_act_l_3D_B" mask="x z pitch"/>
+  <loop_constraint frame1="right_hip_act_l_3D_A" frame2="right_hip_act_r_3D_B" mask="x z pitch"/>
+
+</robot>
